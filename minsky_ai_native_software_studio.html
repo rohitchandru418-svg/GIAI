@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minsky: AI-native software, built with care</title>
+  <meta name="description" content="Minsky is an AI-native software studio in Chennai. We build sustainable, human-centric software on open-source foundations that serves people without demanding their attention.">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts: Instrument Serif (Human Voice), JetBrains Mono (Machine Voice), Inter (Clean UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            ink: '#0E0E0C',
+            'ink-soft': '#161613',
+            'ink-muted': '#22221D',
+            bone: '#ECE8DF',
+            'bone-card': '#E2DDD2',
+            'bone-muted': '#D3CDC0',
+            phosphor: '#B6F35B',
+            'phosphor-dim': '#7BA53D',
+            ember: '#F2A33A',
+            'ember-soft': '#FAD59E',
+          },
+          fontFamily: {
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+            sans: ['"Inter"', '-apple-system', 'sans-serif'],
+          },
+          animation: {
+            'pulse-subtle': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'caret-blink': 'blink 1s step-start infinite',
+          },
+          keyframes: {
+            blink: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Phosphor subtle grid overlay */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: linear-gradient(to right, rgba(182, 243, 91, 0.035) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(182, 243, 91, 0.035) 1px, transparent 1px);
+    }
+    .light .bg-grid-pattern {
+      background-image: linear-gradient(to right, rgba(20, 20, 18, 0.04) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(20, 20, 18, 0.04) 1px, transparent 1px);
+    }
+
+    /* Paper noise overlay */
+    .paper-texture {
+      background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0);
+      background-size: 24px 24px;
+    }
+
+    /* Custom smooth scrolling */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Terminal caret */
+    .caret-blink::after {
+      content: "▋";
+      display: inline-block;
+      margin-left: 2px;
+      color: #B6F35B;
+      animation: blink 1s step-start infinite;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0E0E0C;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2a2a24;
+      border-radius: 2px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #B6F35B;
+    }
+
+    /* Focus styling */
+    :focus-visible {
+      outline: 1px solid #B6F35B;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="bg-ink text-bone font-sans antialiased selection:bg-phosphor selection:text-ink transition-colors duration-500 min-h-screen relative overflow-x-hidden">
+
+  <!-- Ambient Grid & Grain -->
+  <div class="fixed inset-0 bg-grid-pattern pointer-events-none z-0"></div>
+  <div class="fixed inset-0 paper-texture pointer-events-none z-0"></div>
+
+  <!-- ============================================================== -->
+  <!-- HEADER & APP BAR                                               -->
+  <!-- ============================================================== -->
+  <header class="fixed top-0 left-0 right-0 z-40 backdrop-blur-md bg-ink/80 dark:bg-ink/80 border-b border-ink-muted/60 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Wordmark -->
+      <a href="#scene-0" class="flex items-center gap-2 group">
+        <span class="font-mono text-phosphor text-lg font-bold group-hover:translate-x-0.5 transition-transform">$_</span>
+        <span class="font-serif text-2xl tracking-wide font-normal text-bone hover:text-white transition-colors">minsky</span>
+        <span class="text-[10px] font-mono uppercase tracking-widest text-neutral-500 pl-2 border-l border-ink-muted hidden sm:inline">Chennai · 13.08°N</span>
+      </a>
+
+      <!-- Status indicator & controls -->
+      <div class="flex items-center gap-4 text-xs font-mono">
+        <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded border border-ink-muted/80 bg-ink-soft/60">
+          <span class="w-1.5 h-1.5 rounded-full bg-phosphor animate-pulse"></span>
+          <span class="text-neutral-400">engine:</span>
+          <span class="text-phosphor">online · model-routed</span>
+        </div>
+
+        <!-- Audio feedback toggle (Tactile click feedback) -->
+        <button id="sound-toggle" aria-label="Toggle mechanical audio" title="Subtle keyboard sound feedback" 
+                class="p-2 rounded border border-ink-muted text-neutral-400 hover:text-bone hover:border-neutral-700 transition">
+          <i data-lucide="volume-x" class="w-4 h-4" id="sound-icon"></i>
+        </button>
+
+        <!-- Time-of-day / Theme Toggle (Ink / Bone) -->
+        <button id="theme-toggle" aria-label="Toggle Ink/Bone Palette" title="Toggle Ink (Dark) / Bone (Light)"
+                class="flex items-center gap-2 px-3 py-1.5 rounded border border-ink-muted text-neutral-300 hover:text-bone hover:border-phosphor/50 transition">
+          <span class="w-2 h-2 rounded-full bg-bone" id="theme-dot"></span>
+          <span id="theme-label" class="hidden sm:inline">Ink</span>
+        </button>
+
+        <!-- Command trigger button (Quick access) -->
+        <button onclick="toggleCommandPalette(true)" class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded bg-ink-soft border border-ink-muted text-neutral-300 hover:border-phosphor transition">
+          <span>Search or Ask</span>
+          <kbd class="px-1.5 py-0.5 text-[10px] bg-ink-muted rounded text-phosphor">⌘K</kbd>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================== -->
+  <!-- VERTICAL LIFECYCLE SPINE (Left edge indicator)                -->
+  <!-- ============================================================== -->
+  <aside class="fixed left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 hidden xl:flex flex-col gap-3 font-mono text-[11px] select-none">
+    <div class="text-[9px] uppercase tracking-widest text-neutral-600 mb-1 pl-3 font-mono">/spine</div>
+    
+    <div class="relative flex flex-col gap-2.5 pl-3 border-l border-ink-muted" id="lifecycle-spine">
+      <!-- Active marker line that animates -->
+      <div id="spine-active-indicator" class="absolute left-[-1px] top-0 w-[2px] h-4 bg-phosphor transition-all duration-300 shadow-[0_0_8px_#B6F35B]"></div>
+
+      <a href="#scene-0" data-stage="0" class="spine-item group flex items-center gap-2 text-phosphor transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-phosphor group-hover:scale-125 transition-transform"></span>
+        <span class="tracking-tight">00 / Arrival</span>
+      </a>
+      <a href="#scene-1" data-stage="1" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">01 / Philosophy</span>
+      </a>
+      <a href="#scene-2" data-stage="2" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">02 / What AI-Native Means</span>
+      </a>
+      <a href="#scene-3" data-stage="3" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">03 / Capabilities</span>
+      </a>
+      <a href="#scene-4" data-stage="4" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">04 / How We Work</span>
+      </a>
+      <a href="#scene-5" data-stage="5" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">05 / In The Wild</span>
+      </a>
+      <a href="#scene-6" data-stage="6" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">06 / Cost & Scale</span>
+      </a>
+      <a href="#scene-7" data-stage="7" class="spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors">
+        <span class="w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors"></span>
+        <span class="tracking-tight">07 / Conversation</span>
+      </a>
+    </div>
+
+    <div class="mt-4 pt-3 border-t border-ink-muted text-[10px] text-neutral-600 pl-3">
+      <span class="text-ember font-serif italic text-sm">◐</span> = human gate
+    </div>
+  </aside>
+
+  <!-- ============================================================== -->
+  <!-- MAIN CONTENT CONTAINER                                         -->
+  <!-- ============================================================== -->
+  <main class="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 pt-28 pb-40 space-y-36 sm:space-y-48">
+
+    <!-- ============================================================ -->
+    <!-- SCENE 0: ARRIVAL (Position + Live Streaming Brief)          -->
+    <!-- ============================================================ -->
+    <section id="scene-0" class="pt-8 sm:pt-16 scroll-mt-28">
+      
+      <!-- Eyebrow -->
+      <div class="flex items-center gap-2 font-mono text-xs text-neutral-400 mb-6">
+        <span class="text-phosphor">minsky</span>
+        <span>/</span>
+        <span>AI-native software studio</span>
+        <span>/</span>
+        <span class="text-bone">Chennai</span>
+      </div>
+
+      <!-- Human Headline (Serif, warm, breathing) -->
+      <h1 class="font-serif text-5xl sm:text-7xl lg:text-8xl tracking-tight text-bone font-normal leading-[1.08] mb-6">
+        Software that works <span class="italic text-neutral-300">quietly.</span>
+      </h1>
+
+      <!-- Machine Line (Phosphor monospace streaming) -->
+      <div class="font-mono text-sm sm:text-base text-phosphor flex items-center gap-2 mb-6">
+        <span class="inline-block w-2 h-2 bg-phosphor"></span>
+        <span id="machine-hero-stream" class="tracking-tight font-medium">AI-native. Human-centric. Open at heart.</span>
+      </div>
+
+      <!-- Role Lens Switcher & Subcopy -->
+      <div class="mb-10 space-y-4">
+        <!-- Lens buttons -->
+        <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+          <span class="text-neutral-500 mr-1">View lens:</span>
+          <button onclick="setLens('general')" class="lens-btn px-2.5 py-1 rounded border border-phosphor bg-phosphor/10 text-phosphor" data-lens="general">All</button>
+          <button onclick="setLens('founder')" class="lens-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone" data-lens="founder">Founder</button>
+          <button onclick="setLens('institution')" class="lens-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone" data-lens="institution">Government & Institution</button>
+          <button onclick="setLens('operations')" class="lens-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone" data-lens="operations">Operations Lead</button>
+          <button onclick="setLens('developer')" class="lens-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone" data-lens="developer">Engineer</button>
+        </div>
+
+        <!-- Dynamic Subcopy -->
+        <p id="lens-subcopy" class="text-lg sm:text-xl text-neutral-300 font-normal leading-relaxed max-w-2xl transition-opacity duration-300">
+          We design, build, and look after software where intelligence is the foundation, not a feature. It serves people without demanding their attention.
+        </p>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- THE INTERACTIVE HERO PROMPT (Generates live brief)           -->
+      <!-- ============================================================ -->
+      <div class="rounded-xl border border-ink-muted bg-ink-soft p-5 sm:p-7 shadow-2xl relative">
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-ink-muted/80 text-xs font-mono">
+          <span class="text-neutral-400 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-phosphor"></span>
+            <span>interactive session: describe a problem to receive a 5-part brief</span>
+          </span>
+          <span class="text-neutral-500 hidden sm:inline">0 tokens billed</span>
+        </div>
+
+        <form id="hero-brief-form" onsubmit="generateLiveBrief(event)" class="space-y-4">
+          <div class="relative">
+            <div class="absolute left-4 top-4 text-phosphor font-mono text-sm">$_</div>
+            <textarea id="brief-input" rows="2" 
+                      placeholder="What’s taking too much of your team’s time?"
+                      class="w-full bg-ink text-bone font-mono text-sm sm:text-base pl-11 pr-4 py-3.5 rounded-lg border border-ink-muted focus:border-phosphor focus:ring-0 placeholder:text-neutral-600 resize-none transition-colors"
+                      required></textarea>
+          </div>
+
+          <!-- Suggestion chips -->
+          <div class="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span class="text-neutral-500">examples:</span>
+            <button type="button" onclick="fillPrompt('A CRM that follows up on its own')" 
+                    class="px-2.5 py-1 rounded bg-ink border border-ink-muted hover:border-phosphor text-neutral-300 hover:text-phosphor transition">
+              A CRM that follows up on its own
+            </button>
+            <button type="button" onclick="fillPrompt('Cut our manual invoice & compliance approvals')" 
+                    class="px-2.5 py-1 rounded bg-ink border border-ink-muted hover:border-phosphor text-neutral-300 hover:text-phosphor transition">
+              Cut manual approvals
+            </button>
+            <button type="button" onclick="fillPrompt('An offline-first field app for 10,000 health workers')" 
+                    class="px-2.5 py-1 rounded bg-ink border border-ink-muted hover:border-phosphor text-neutral-300 hover:text-phosphor transition">
+              App for 10,000 field workers
+            </button>
+            <button type="button" onclick="fillPrompt('Make our PostgreSQL data answer conversational business questions safely')" 
+                    class="px-2.5 py-1 rounded bg-ink border border-ink-muted hover:border-phosphor text-neutral-300 hover:text-phosphor transition">
+              Make our data answer questions
+            </button>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2">
+            <div class="flex items-center gap-2">
+              <button type="submit" id="submit-brief-btn"
+                      class="px-5 py-2.5 rounded bg-phosphor text-ink font-mono font-medium text-xs sm:text-sm hover:bg-[#cbfb7b] transition flex items-center gap-2 group">
+                <span>Compose First-Draft Brief</span>
+                <span class="font-bold group-hover:translate-x-1 transition-transform">→</span>
+              </button>
+              <button type="button" onclick="resetHeroBrief()" id="clear-brief-btn" class="hidden px-3 py-2 text-xs font-mono text-neutral-500 hover:text-bone">
+                Reset
+              </button>
+            </div>
+            
+            <a href="#scene-7" class="text-xs font-mono text-neutral-400 hover:text-ember transition flex items-center gap-1.5 underline underline-offset-4">
+              <span>or just talk to a human</span>
+              <span class="text-ember">◐</span>
+            </a>
+          </div>
+        </form>
+
+        <!-- Streaming Live Brief Output Window -->
+        <div id="brief-output-container" class="hidden mt-6 pt-6 border-t border-ink-muted/80">
+          <div class="flex items-center justify-between font-mono text-xs mb-4">
+            <div class="flex items-center gap-2">
+              <span id="streaming-indicator" class="w-2 h-2 rounded-full bg-phosphor animate-ping"></span>
+              <span class="text-phosphor" id="brief-status-text">Drafting architecture via machine voice...</span>
+            </div>
+            <span class="text-[11px] text-neutral-500 font-mono" id="brief-meta">latency: 18ms</span>
+          </div>
+
+          <!-- Structured 5-Part Brief Stream -->
+          <div id="brief-stream-content" class="space-y-4 font-mono text-xs sm:text-sm bg-ink p-5 rounded-lg border border-neutral-800 text-neutral-200">
+            <!-- Injected dynamically -->
+          </div>
+
+          <!-- Human Close & Lead Capture Action -->
+          <div id="brief-human-footer" class="hidden mt-5 p-4 rounded-lg bg-ink-muted/40 border border-neutral-700/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-ember font-serif text-base">◐</span>
+                <span class="font-serif italic text-base sm:text-lg text-bone">The human gatekeeper at Minsky</span>
+              </div>
+              <p class="font-mono text-xs text-neutral-400">
+                Drafted by AI in a few seconds. Reviewed by a person at Minsky within one working day.
+              </p>
+            </div>
+            <button onclick="sendBriefToTeam()" class="w-full sm:w-auto px-5 py-2.5 rounded bg-ember hover:bg-amber-400 text-ink font-mono font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg">
+              <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              <span>Send this to the team</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 1: /philosophy (The Redlined Manifesto)                -->
+    <!-- ============================================================ -->
+    <section id="scene-1" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/philosophy</span>
+        <span class="font-mono text-xs text-neutral-400">Two Voices · Diff mode</span>
+      </div>
+
+      <!-- Scene Header -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          The machine is fast. The human has taste.
+        </h2>
+        <p class="font-mono text-xs text-neutral-400 max-w-xl">
+          Watch a live redline session. The machine draft proposes optimization patterns; our human engineering principles decide what endures.
+        </p>
+      </div>
+
+      <!-- Redline Interactive Canvas -->
+      <div class="rounded-xl border border-ink-muted bg-ink-soft p-6 sm:p-8 space-y-6">
+        
+        <!-- Controls -->
+        <div class="flex items-center justify-between border-b border-ink-muted pb-4 text-xs font-mono">
+          <div class="flex items-center gap-3">
+            <span class="text-neutral-500">Playback:</span>
+            <button onclick="toggleManifestoStep(1)" id="step-btn-1" class="step-btn px-2.5 py-1 rounded border border-phosphor text-phosphor bg-phosphor/10">Beat 01</button>
+            <button onclick="toggleManifestoStep(2)" id="step-btn-2" class="step-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone">Beat 02</button>
+            <button onclick="toggleManifestoStep(3)" id="step-btn-3" class="step-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone">Beat 03</button>
+            <button onclick="playAllManifesto()" class="px-2.5 py-1 rounded border border-neutral-700 text-neutral-300 hover:border-phosphor flex items-center gap-1">
+              <i data-lucide="play" class="w-3 h-3 text-phosphor"></i> Run diff
+            </button>
+          </div>
+          <span class="text-[11px] text-neutral-500 hidden sm:inline">human veto applied</span>
+        </div>
+
+        <!-- Beat 1: Engagement vs Attention -->
+        <div id="diff-beat-1" class="diff-block p-4 rounded-lg bg-ink/70 border border-neutral-800 transition-all duration-300">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-neutral-500 mb-2">Beat 01 // Product Metric</div>
+          <div class="space-y-2">
+            <!-- Machine proposal -->
+            <div class="font-mono text-xs text-red-400/80 line-through decoration-red-500/60 flex items-start gap-2">
+              <span class="text-neutral-600">-- machine:</span>
+              <span>"make it stickier, maximize daily active engagement and recurring screen time."</span>
+            </div>
+            <!-- Human decision -->
+            <div class="font-serif text-lg sm:text-xl text-bone flex items-start gap-2">
+              <span class="font-mono text-xs text-ember mt-1">◐ human:</span>
+              <span>"No. Attention isn’t the product. Software should take care of things and fade into the background."</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Beat 2: Proprietary vs Open Source -->
+        <div id="diff-beat-2" class="diff-block p-4 rounded-lg bg-ink/70 border border-neutral-800 transition-all duration-300">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-neutral-500 mb-2">Beat 02 // Stack Foundation</div>
+          <div class="space-y-2">
+            <!-- Machine proposal -->
+            <div class="font-mono text-xs text-red-400/80 line-through decoration-red-500/60 flex items-start gap-2">
+              <span class="text-neutral-600">-- machine:</span>
+              <span>"standardise completely on a single vendor's closed proprietary ecosystem to ship 2 days faster."</span>
+            </div>
+            <!-- Human decision -->
+            <div class="font-serif text-lg sm:text-xl text-bone flex items-start gap-2">
+              <span class="font-mono text-xs text-ember mt-1">◐ human:</span>
+              <span>"Open source at heart, model-agnostic, so you can host it yourself and leave whenever you want."</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Beat 3: Growth vs Sustainability -->
+        <div id="diff-beat-3" class="diff-block p-4 rounded-lg bg-ink/70 border border-neutral-800 transition-all duration-300">
+          <div class="text-[10px] font-mono uppercase tracking-widest text-neutral-500 mb-2">Beat 03 // Capital & Scaling</div>
+          <div class="space-y-2">
+            <!-- Machine proposal -->
+            <div class="font-mono text-xs text-red-400/80 line-through decoration-red-500/60 flex items-start gap-2">
+              <span class="text-neutral-600">-- machine:</span>
+              <span>"route every single keystroke to massive 400B parameter cloud models to boast max capability."</span>
+            </div>
+            <!-- Human decision -->
+            <div class="font-serif text-lg sm:text-xl text-bone flex items-start gap-2">
+              <span class="font-mono text-xs text-ember mt-1">◐ human:</span>
+              <span>"Scale without breaking the bank. Smaller models where they are enough; frontier models only where they earn their cost."</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grand Statement Result (Settles clean) -->
+        <div class="mt-8 pt-6 border-t border-ink-muted/80 space-y-4">
+          <div class="font-mono text-[11px] text-phosphor flex items-center gap-2">
+            <span class="w-1.5 h-1.5 bg-phosphor rounded-full"></span>
+            <span>Accepted Manifesto · Minsky Studio</span>
+          </div>
+
+          <blockquote class="font-serif text-2xl sm:text-3xl lg:text-4xl text-bone leading-snug">
+            “For us, building software is an <span class="italic text-phosphor underline decoration-phosphor/40">act of care</span>. Care for the people who use it, and for the people who will own and sustain it long after it’s built.”
+          </blockquote>
+
+          <p class="font-sans text-sm sm:text-base text-neutral-400 leading-relaxed max-w-2xl">
+            We believe in building sustainable, human-centric, AI-native software grounded in open-source values and thoughtful engineering. Our goal is to create software that evolves with people, scales without breaking the bank, and reliably serves human needs without demanding attention for itself.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 2: WHAT "AI-NATIVE" ACTUALLY MEANS (Interface Morph)  -->
+    <!-- ============================================================ -->
+    <section id="scene-2" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/what-ai-native-means</span>
+        <span class="font-mono text-xs text-neutral-400">Interaction Study #02</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          AI-native is not a chatbot in the corner.
+        </h2>
+        <p class="font-sans text-base text-neutral-400 max-w-2xl leading-relaxed">
+          Most software adds AI the way a building adds a sign. We start with intelligence as the engine. It reads, routes, drafts, and handles the routine, and we design everything else around the people who stay in charge.
+        </p>
+      </div>
+
+      <!-- Interactive Morphing UI Container -->
+      <div class="rounded-xl border border-ink-muted bg-ink-soft p-5 sm:p-7 space-y-6">
+        
+        <!-- Toggle Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-ink-muted pb-4">
+          <div class="text-xs font-mono text-neutral-400">
+            Compare CRM Lead Workflows:
+          </div>
+
+          <!-- Two-State Toggle -->
+          <div class="inline-flex p-1 rounded-lg bg-ink border border-ink-muted">
+            <button onclick="setInterfaceMode('bolted')" id="btn-mode-bolted"
+                    class="px-4 py-1.5 rounded-md text-xs font-mono transition-all text-neutral-400 hover:text-bone">
+              Bolted-on AI
+            </button>
+            <button onclick="setInterfaceMode('native')" id="btn-mode-native"
+                    class="px-4 py-1.5 rounded-md text-xs font-mono transition-all bg-phosphor text-ink font-semibold">
+              Minsky AI-Native
+            </button>
+          </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- STATE A: BOLTED-ON (Cluttered, 14 fields, floating bot) -->
+        <!-- ======================================================== -->
+        <div id="interface-bolted" class="hidden space-y-4 rounded-lg bg-ink p-5 border border-neutral-800 relative select-none">
+          
+          <!-- Mock CRM Top nav -->
+          <div class="flex items-center justify-between border-b border-neutral-800 pb-3 text-xs text-neutral-400 font-sans">
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-neutral-200">LegacyCRM v9.4</span>
+              <span class="text-neutral-600">|</span>
+              <span class="text-neutral-500">Leads > New Entry #9204</span>
+            </div>
+            <div class="flex gap-2 text-[11px]">
+              <span class="px-2 py-0.5 bg-neutral-800 rounded">Save</span>
+              <span class="px-2 py-0.5 bg-neutral-800 rounded">Audit Log (108)</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-neutral-400 font-mono">
+            ⚠️ 14 mandatory fields required before customer followup can be logged.
+          </div>
+
+          <!-- Cluttered 14-field form simulation -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Lead First Name *</label>
+              <input type="text" value="Priya" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Lead Last Name *</label>
+              <input type="text" value="Sundaram" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Company Identifier *</label>
+              <input type="text" value="Coord Craft Labs" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Territory Code</label>
+              <input type="text" value="IN-TN-CHN-04" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Inquiry Channel</label>
+              <input type="text" value="Inbound Web Form" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Pricing Tier Interest</label>
+              <input type="text" value="Enterprise Pilot" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Internal SLA Due</label>
+              <input type="text" value="24 Hours" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Account Owner</label>
+              <input type="text" value="A. Murugan" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+            <div class="space-y-1">
+              <label class="text-[10px] text-neutral-500 font-mono">Lead Stage Gate</label>
+              <input type="text" value="Stage 1: Discovery" disabled class="w-full bg-ink-soft border border-neutral-800 px-2 py-1.5 rounded text-neutral-300">
+            </div>
+          </div>
+
+          <!-- Tacked on "Ask AI" floating pill (Cliché) -->
+          <div class="absolute bottom-4 right-4 bg-purple-600/90 text-white text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg border border-purple-400 animate-bounce">
+            <span>✨ Ask Copilot AI</span>
+          </div>
+
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- STATE B: NATIVE (Calm, 1 line, ambient resolution)      -->
+        <!-- ======================================================== -->
+        <div id="interface-native" class="space-y-6 rounded-lg bg-ink p-6 border border-phosphor/30 relative">
+          
+          <div class="flex items-center justify-between text-xs font-mono text-neutral-400">
+            <span class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-phosphor"></span>
+              <span class="text-phosphor">Ambient Session Active</span>
+            </span>
+            <span>Coord Community · Chennai</span>
+          </div>
+
+          <!-- The Single Quiet Line -->
+          <div class="p-4 sm:p-5 rounded-lg bg-ink-soft border border-neutral-800 space-y-3">
+            <div class="font-serif text-lg sm:text-2xl text-bone leading-snug">
+              Priya from <span class="text-phosphor font-sans font-medium text-base">Coord</span> asked about pricing 2 hours ago.
+            </div>
+            <p class="font-mono text-xs text-neutral-400">
+              Drafted reply from your last three closed craft proposals with customized volume tiers.
+            </p>
+
+            <!-- Human decision controls -->
+            <div class="flex flex-wrap items-center gap-2 pt-2">
+              <button onclick="triggerActionToast('Proposal sent to Priya via email.')" class="px-3.5 py-1.5 rounded bg-phosphor text-ink font-mono font-medium text-xs hover:bg-[#cbfb7b] transition flex items-center gap-1.5">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Send</span>
+              </button>
+              <button onclick="triggerActionToast('Opening interactive proposal editor...')" class="px-3.5 py-1.5 rounded bg-ink border border-ink-muted text-bone font-mono text-xs hover:border-neutral-500 transition">
+                Edit
+              </button>
+              <button onclick="triggerActionToast('Snoozed for 4 hours.')" class="px-3.5 py-1.5 rounded text-neutral-500 hover:text-neutral-300 font-mono text-xs transition">
+                Not now
+              </button>
+            </div>
+          </div>
+
+          <!-- Ambient handled items (Dimmer) -->
+          <div class="font-mono text-xs text-neutral-500 flex items-center justify-between pt-1 border-t border-neutral-900">
+            <span class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full bg-neutral-600"></span>
+              <span>11 other routine items handled autonomously in background.</span>
+            </span>
+            <span class="text-neutral-600 font-serif italic text-sm">Nothing else needs you.</span>
+          </div>
+
+        </div>
+
+        <!-- Caption -->
+        <p class="font-serif italic text-xl text-neutral-300 text-center sm:text-left pt-2">
+          “The best interface is the one you rarely have to open.”
+        </p>
+
+        <!-- Three Principles as Typographic Lines -->
+        <div class="pt-6 border-t border-ink-muted grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="space-y-1.5">
+            <div class="font-mono text-xs text-phosphor">01 / Engine, not chat</div>
+            <p class="text-xs text-neutral-400 leading-relaxed font-sans">
+              Intelligence drives decisions, workflows, and automated routing, rather than an isolated conversational sidebar.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="font-mono text-xs text-ember flex items-center gap-1">
+              <span>◐</span>
+              <span>02 / Humans hold the pen</span>
+            </div>
+            <p class="text-xs text-neutral-400 leading-relaxed font-sans">
+              The machine proposes drafts and summaries. A person signs off on anything affecting money, reputation, or humans.
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="font-mono text-xs text-bone">03 / Quiet by default</div>
+            <p class="text-xs text-neutral-400 leading-relaxed font-sans">
+              Zero notification theater. No nagging popups or engagement loops. Built deliberately to fade into the background.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 3: CAPABILITIES (The Live Work Ledger)                 -->
+    <!-- ============================================================ -->
+    <section id="scene-3" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/capabilities</span>
+        <span class="font-mono text-xs text-neutral-400">Offer Ledger</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          What we put to work.
+        </h2>
+        <p class="font-mono text-xs text-neutral-400 max-w-xl">
+          Not packaged marketing tiers. Expand any ledger line below to inspect the engineering anatomy and human boundaries.
+        </p>
+      </div>
+
+      <!-- Mono Ledger Rows -->
+      <div class="border border-ink-muted rounded-xl divide-y divide-ink-muted overflow-hidden bg-ink-soft">
+        
+        <!-- Row 01 -->
+        <div class="ledger-row group cursor-pointer transition-colors" onclick="toggleLedgerRow(1)">
+          <div class="p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="font-mono text-sm sm:text-base text-bone group-hover:text-phosphor transition-colors flex items-center gap-3">
+                <span class="text-phosphor font-mono text-xs sm:text-sm">01 /</span>
+                <span class="font-medium">AI-native products</span>
+              </div>
+              <p class="text-xs text-neutral-400 font-sans max-w-2xl">
+                Applications built from the ground up with AI as the core engine, where intelligence drives decisions, workflows, automation, and the whole experience.
+              </p>
+            </div>
+            <span class="ledger-icon font-mono text-xs text-neutral-500 group-hover:text-bone transition-transform transform">[ + ]</span>
+          </div>
+          <!-- Expanded Drawer -->
+          <div id="ledger-content-1" class="hidden px-6 pb-6 pt-2 border-t border-ink-muted/50 bg-ink font-mono text-xs space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-neutral-300">
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-phosphor uppercase">Stack</div>
+                <div class="mt-1">FastAPI, Next.js, vLLM, LangGraph, pgvector</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-ember uppercase">◐ Human Gate</div>
+                <div class="mt-1">Deterministic sanity filters before user delivery</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-neutral-400 uppercase">Typical Scope</div>
+                <div class="mt-1">6 to 12 weeks to production v1</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 02 -->
+        <div class="ledger-row group cursor-pointer transition-colors" onclick="toggleLedgerRow(2)">
+          <div class="p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="font-mono text-sm sm:text-base text-bone group-hover:text-phosphor transition-colors flex items-center gap-3">
+                <span class="text-phosphor font-mono text-xs sm:text-sm">02 /</span>
+                <span class="font-medium">Intelligent systems for how you already work</span>
+              </div>
+              <p class="text-xs text-neutral-400 font-sans max-w-2xl">
+                Your CRM, your approvals, your inbox, your reporting, re-founded on AI without a risky rewrite of your legacy systems.
+              </p>
+            </div>
+            <span class="ledger-icon font-mono text-xs text-neutral-500 group-hover:text-bone transition-transform transform">[ + ]</span>
+          </div>
+          <!-- Expanded Drawer -->
+          <div id="ledger-content-2" class="hidden px-6 pb-6 pt-2 border-t border-ink-muted/50 bg-ink font-mono text-xs space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-neutral-300">
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-phosphor uppercase">Integration Hook</div>
+                <div class="mt-1">Postgres triggers, Webhooks, WhatsApp Business APIs, Zapier/n8n</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-ember uppercase">◐ Human Gate</div>
+                <div class="mt-1">Dual-signature required for disbursements & contract terms</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-neutral-400 uppercase">Impact</div>
+                <div class="mt-1">70-85% reduction in manual data entry time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 03 -->
+        <div class="ledger-row group cursor-pointer transition-colors" onclick="toggleLedgerRow(3)">
+          <div class="p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="font-mono text-sm sm:text-base text-bone group-hover:text-phosphor transition-colors flex items-center gap-3">
+                <span class="text-phosphor font-mono text-xs sm:text-sm">03 /</span>
+                <span class="font-medium">Design & full-stack foundations</span>
+              </div>
+              <p class="text-xs text-neutral-400 font-sans max-w-2xl">
+                Clean, fast, accessible interfaces and scalable, secure platforms for the intelligence to stand on. Web design and end-to-end product engineering.
+              </p>
+            </div>
+            <span class="ledger-icon font-mono text-xs text-neutral-500 group-hover:text-bone transition-transform transform">[ + ]</span>
+          </div>
+          <!-- Expanded Drawer -->
+          <div id="ledger-content-3" class="hidden px-6 pb-6 pt-2 border-t border-ink-muted/50 bg-ink font-mono text-xs space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-neutral-300">
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-phosphor uppercase">Standards</div>
+                <div class="mt-1">WCAG 2.1 AA, Sub-second TTFB, React/Tailwind, Go/Python</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-ember uppercase">◐ Human Gate</div>
+                <div class="mt-1">Design review with authentic user testing groups in Chennai</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-neutral-400 uppercase">Deliverable</div>
+                <div class="mt-1">Full IP handover with clean documentation</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 04 -->
+        <div class="ledger-row group cursor-pointer transition-colors" onclick="toggleLedgerRow(4)">
+          <div class="p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="font-mono text-sm sm:text-base text-bone group-hover:text-phosphor transition-colors flex items-center gap-3">
+                <span class="text-phosphor font-mono text-xs sm:text-sm">04 /</span>
+                <span class="font-medium">Tending</span>
+              </div>
+              <p class="text-xs text-neutral-400 font-sans max-w-2xl">
+                Evaluations, cost monitoring, model upgrades, and maintenance, so what we build stays sharp, affordable, and yours to run.
+              </p>
+            </div>
+            <span class="ledger-icon font-mono text-xs text-neutral-500 group-hover:text-bone transition-transform transform">[ + ]</span>
+          </div>
+          <!-- Expanded Drawer -->
+          <div id="ledger-content-4" class="hidden px-6 pb-6 pt-2 border-t border-ink-muted/50 bg-ink font-mono text-xs space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-neutral-300">
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-phosphor uppercase">Monitoring</div>
+                <div class="mt-1">Continuous evals, prompt regression checks, token burn telemetry</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-ember uppercase">◐ Human Gate</div>
+                <div class="mt-1">Monthly joint stewardship review with your engineering leads</div>
+              </div>
+              <div class="p-3 rounded bg-ink-soft border border-neutral-800">
+                <div class="text-[10px] text-neutral-400 uppercase">Commitment</div>
+                <div class="mt-1">Zero lock-in SLA. We help your internal team take over.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 4: HOW WE WORK (Git Commit Log with Human Gates)      -->
+    <!-- ============================================================ -->
+    <section id="scene-4" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/process</span>
+        <span class="font-mono text-xs text-neutral-400">git log --human-in-the-loop</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          Small steps, in the open, with a human at every gate.
+        </h2>
+        <p class="font-mono text-xs text-neutral-400 max-w-xl">
+          Green entries are machine speed; amber gates <span class="text-ember font-serif">◐</span> are human taste and safety sign-offs.
+        </p>
+      </div>
+
+      <!-- Git-style Commit Log -->
+      <div class="rounded-xl border border-ink-muted bg-ink p-5 sm:p-7 font-mono text-xs sm:text-sm space-y-4">
+        
+        <div class="flex items-center justify-between border-b border-neutral-800 pb-3 text-neutral-500 text-[11px]">
+          <span>branch: main / release-cadence</span>
+          <span>authenticated: Minsky Team & Client Partner</span>
+        </div>
+
+        <div class="space-y-3 font-mono">
+          
+          <!-- Day 01 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-1">
+            <span class="text-phosphor font-medium w-16 sm:w-20 shrink-0">day 01</span>
+            <span class="text-neutral-400 w-24 sm:w-28 shrink-0">understand</span>
+            <span class="text-neutral-300">sit with the people who will actually use it; capture edge cases</span>
+          </div>
+
+          <!-- Day 03 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-1">
+            <span class="text-phosphor font-medium w-16 sm:w-20 shrink-0">day 03</span>
+            <span class="text-neutral-400 w-24 sm:w-28 shrink-0">prototype</span>
+            <span class="text-neutral-300">something working in code, not keynotes or abstract slides</span>
+          </div>
+
+          <!-- Human Gate 01 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-2 px-3 rounded bg-ember/10 border border-ember/30">
+            <span class="text-ember font-serif text-base w-16 sm:w-20 shrink-0">◐ gate 01</span>
+            <span class="text-ember font-serif italic text-sm w-24 sm:w-28 shrink-0">human trial</span>
+            <span class="font-serif text-base text-bone">You try the prototype on real work. You tell us exactly what feels brittle.</span>
+          </div>
+
+          <!-- Day 10 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-1">
+            <span class="text-phosphor font-medium w-16 sm:w-20 shrink-0">day 10</span>
+            <span class="text-neutral-400 w-24 sm:w-28 shrink-0">evaluate</span>
+            <span class="text-neutral-300">benchmark the AI against your proprietary tests; quantify failure modes</span>
+          </div>
+
+          <!-- Human Gate 02 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-2 px-3 rounded bg-ember/10 border border-ember/30">
+            <span class="text-ember font-serif text-base w-16 sm:w-20 shrink-0">◐ gate 02</span>
+            <span class="text-ember font-serif italic text-sm w-24 sm:w-28 shrink-0">autonomy bounds</span>
+            <span class="font-serif text-base text-bone">A human signs off on what the software may execute alone versus what requires human confirmation.</span>
+          </div>
+
+          <!-- Day 14 -->
+          <div class="flex items-start gap-3 sm:gap-6 py-1">
+            <span class="text-phosphor font-medium w-16 sm:w-20 shrink-0">day 14</span>
+            <span class="text-neutral-400 w-24 sm:w-28 shrink-0">ship v1</span>
+            <span class="text-neutral-300">rollout to a small, high-trust cohort first; zero big-bang risk</span>
+          </div>
+
+          <!-- Ongoing -->
+          <div class="flex items-start gap-3 sm:gap-6 py-1 border-t border-neutral-900 pt-2">
+            <span class="text-phosphor font-medium w-16 sm:w-20 shrink-0">ongoing</span>
+            <span class="text-neutral-400 w-24 sm:w-28 shrink-0">tend</span>
+            <span class="text-neutral-300">watch token costs, hallucination drift, model deprecations, latency</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Three Core Commitments -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
+        <div class="p-4 rounded-lg border border-ink-muted bg-ink-soft space-y-2">
+          <div class="font-mono text-xs text-phosphor">/promise_01</div>
+          <h4 class="font-serif text-xl text-bone">You own it.</h4>
+          <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+            All code, model weights, custom prompts, evaluation datasets, and customer traces are yours from day one.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-ink-muted bg-ink-soft space-y-2">
+          <div class="font-mono text-xs text-phosphor">/promise_02</div>
+          <h4 class="font-serif text-xl text-bone">No lock-in.</h4>
+          <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+            Model-agnostic routing. We use self-hostable open-source frameworks so you can change inference providers in minutes.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-lg border border-ink-muted bg-ink-soft space-y-2">
+          <div class="font-mono text-xs text-phosphor">/promise_03</div>
+          <h4 class="font-serif text-xl text-bone">No heroics.</h4>
+          <p class="text-xs text-neutral-400 font-sans leading-relaxed">
+            Built so an ordinary engineering team can easily inspect, run, debug, and maintain without relying on an agency umbilical cord.
+          </p>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 5: PROOF (Case Traces)                                 -->
+    <!-- ============================================================ -->
+    <section id="scene-5" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/in-the-wild</span>
+        <span class="font-mono text-xs text-neutral-400">Verifiable System Traces</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          Proof in traces, not glossy mockups.
+        </h2>
+        <p class="font-mono text-xs text-neutral-400 max-w-xl">
+          Four lines per system: The situation, What we built, What it does autonomously, and What stayed human.
+        </p>
+      </div>
+
+      <!-- Case Traces Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Trace 01: Coord -->
+        <div class="p-6 rounded-xl border border-ink-muted bg-ink-soft font-mono text-xs space-y-4 relative">
+          <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+            <span class="text-phosphor font-medium text-sm">Coord Craft Ecosystem</span>
+            <span class="text-neutral-500">Chennai · Platform</span>
+          </div>
+
+          <div class="space-y-2.5 leading-relaxed text-neutral-300">
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">The Situation:</span>
+              <span>Dispersed artisan communities struggled to manage inventory across fragmented craft clusters.</span>
+            </div>
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">What We Built:</span>
+              <span>Dynamic storefront architecture paired with an ambient relational CRM.</span>
+            </div>
+            <div class="text-phosphor">
+              <span class="text-neutral-500 block text-[10px] uppercase">What It Does Now:</span>
+              <span>Translates multilingual artisan audio updates into catalog metadata and prepares customer inquiries.</span>
+            </div>
+            <div class="text-bone font-serif text-sm border-t border-neutral-800 pt-2">
+              <span class="text-ember font-mono text-xs">◐ What Stayed Human:</span>
+              <span>Pricing approvals, artisan narrative curation, and all direct maker-to-buyer relationships.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trace 02: TNGSS -->
+        <div class="p-6 rounded-xl border border-ink-muted bg-ink-soft font-mono text-xs space-y-4 relative">
+          <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+            <span class="text-phosphor font-medium text-sm">TNGSS (Tamil Nadu Global Startup Summit)</span>
+            <span class="text-neutral-500">Government · Mobile App</span>
+          </div>
+
+          <div class="space-y-2.5 leading-relaxed text-neutral-300">
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">The Situation:</span>
+              <span>Tens of thousands of delegates, founders, and investors needing high-density matchmaking and venue routing.</span>
+            </div>
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">What We Built:</span>
+              <span>Resilient mobile networking, real-time schedule orchestration, and contextual venue navigation.</span>
+            </div>
+            <div class="text-phosphor">
+              <span class="text-neutral-500 block text-[10px] uppercase">What It Does Now:</span>
+              <span>Matches compatible founder-investor agendas on the fly based on sectoral intent.</span>
+            </div>
+            <div class="text-bone font-serif text-sm border-t border-neutral-800 pt-2">
+              <span class="text-ember font-mono text-xs">◐ What Stayed Human:</span>
+              <span>Government protocol approvals and physical VIP introduction vetting.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trace 03: ICDIC -->
+        <div class="p-6 rounded-xl border border-ink-muted bg-ink-soft font-mono text-xs space-y-4 relative">
+          <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+            <span class="text-phosphor font-medium text-sm">ICDIC (MSME Facilitation)</span>
+            <span class="text-neutral-500">Ecosystem · Portal</span>
+          </div>
+
+          <div class="space-y-2.5 leading-relaxed text-neutral-300">
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">The Situation:</span>
+              <span>Thousands of small manufacturers missing state incentives due to dense regulatory gazettes and paperwork.</span>
+            </div>
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">What We Built:</span>
+              <span>An automated scheme eligibility matcher and advisory application framework.</span>
+            </div>
+            <div class="text-phosphor">
+              <span class="text-neutral-500 block text-[10px] uppercase">What It Does Now:</span>
+              <span>Parses policy circulars and instantly maps eligible subsidies directly against an MSME's GST profile.</span>
+            </div>
+            <div class="text-bone font-serif text-sm border-t border-neutral-800 pt-2">
+              <span class="text-ember font-mono text-xs">◐ What Stayed Human:</span>
+              <span>Final financial grant sanctions and officer field inspections.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trace 04: TVK -->
+        <div class="p-6 rounded-xl border border-ink-muted bg-ink-soft font-mono text-xs space-y-4 relative">
+          <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+            <span class="text-phosphor font-medium text-sm">TVK Digital Presence</span>
+            <span class="text-neutral-500">Civic Scale · CMS</span>
+          </div>
+
+          <div class="space-y-2.5 leading-relaxed text-neutral-300">
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">The Situation:</span>
+              <span>Massive surge traffic during state-wide announcements demanding zero-downtime reliability.</span>
+            </div>
+            <div>
+              <span class="text-neutral-500 block text-[10px] uppercase">What We Built:</span>
+              <span>Edge-cached, hardened publishing infrastructure and verified press distribution channels.</span>
+            </div>
+            <div class="text-phosphor">
+              <span class="text-neutral-500 block text-[10px] uppercase">What It Does Now:</span>
+              <span>Automates multi-region asset distribution and bandwidth load shedding during high-traffic spikes.</span>
+            </div>
+            <div class="text-bone font-serif text-sm border-t border-neutral-800 pt-2">
+              <span class="text-ember font-mono text-xs">◐ What Stayed Human:</span>
+              <span>All editorial communications and political leadership policy statements.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Dignified Client & Trust Strip -->
+      <div class="pt-6 border-t border-ink-muted/80">
+        <div class="text-[11px] font-mono text-neutral-500 mb-4">
+          Trusted by public institutions, state initiatives, and ambitious founders:
+        </div>
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-xs text-neutral-400">
+          <span class="hover:text-bone transition">FaMeTN</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">ICDIC</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">TNGSS</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">Coord</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">Startup TN</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">Filmster</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">Prime Public School</span>
+          <span class="text-neutral-700">·</span>
+          <span class="hover:text-bone transition">BeInspace</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 6: SUSTAINABILITY (The Cost & Scale Slider)            -->
+    <!-- ============================================================ -->
+    <section id="scene-6" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/sustainability</span>
+        <span class="font-mono text-xs text-neutral-400">Inference Economics</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-3xl sm:text-5xl text-bone mb-3">
+          Scales without breaking the bank.
+        </h2>
+        <p class="font-sans text-base text-neutral-400 max-w-2xl leading-relaxed">
+          Open-source where it matters. Smaller models where they’re enough. The biggest models only where they earn their cost. Drag the slider to observe how our model-routed stack creates an widening cost advantage as your volume scales.
+        </p>
+      </div>
+
+      <!-- Interactive Cost Modeler Card -->
+      <div class="rounded-xl border border-ink-muted bg-ink-soft p-6 sm:p-8 space-y-8">
+        
+        <!-- Slider Control -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between font-mono text-xs">
+            <span class="text-neutral-400">Monthly AI Actions / Decisions:</span>
+            <span id="slider-actions-val" class="text-phosphor text-base font-bold">50,000 actions</span>
+          </div>
+
+          <input type="range" id="cost-slider" min="1000" max="1000000" step="5000" value="50000" 
+                 oninput="updateCostModel(this.value)"
+                 class="w-full h-2 bg-ink rounded-lg appearance-none cursor-pointer accent-phosphor">
+
+          <div class="flex justify-between text-[10px] font-mono text-neutral-500">
+            <span>1,000</span>
+            <span>100,000</span>
+            <span>500,000</span>
+            <span>1,000,000+ actions/mo</span>
+          </div>
+        </div>
+
+        <!-- Comparative Cost Metrics -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <!-- Proprietary closed setup -->
+          <div class="p-5 rounded-lg bg-ink border border-neutral-800 space-y-2">
+            <div class="text-[10px] font-mono uppercase tracking-wider text-neutral-500">
+              Typical All-Proprietary Setup
+            </div>
+            <div class="font-serif text-3xl text-neutral-300" id="cost-proprietary-display">
+              $1,500 <span class="text-xs font-mono text-neutral-500">/ mo</span>
+            </div>
+            <p class="text-xs text-neutral-500 font-sans">
+              Naive routing: every keystroke dispatched to frontier commercial APIs ($0.03/1k tokens).
+            </p>
+          </div>
+
+          <!-- Minsky Model-Routed Stack -->
+          <div class="p-5 rounded-lg bg-ink border border-phosphor/40 space-y-2 relative overflow-hidden">
+            <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-phosphor/10 text-phosphor text-[10px] font-mono">
+              save ~68%
+            </div>
+            <div class="text-[10px] font-mono uppercase tracking-wider text-phosphor">
+              Minsky Open Model-Routed Stack
+            </div>
+            <div class="font-serif text-3xl text-phosphor" id="cost-minsky-display">
+              $480 <span class="text-xs font-mono text-neutral-400">/ mo</span>
+            </div>
+            <p class="text-xs text-neutral-400 font-sans">
+              80% local SLMs (Llama 3 / Mistral) + semantic caching + frontier escalation only on edge cases.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Visual Gap Bar -->
+        <div class="space-y-2 pt-2">
+          <div class="flex justify-between text-xs font-mono">
+            <span class="text-neutral-400">Annual Estimated Capital Retained:</span>
+            <span id="cost-savings-year" class="text-bone font-medium">$12,240 saved</span>
+          </div>
+          <div class="w-full h-2.5 bg-ink rounded-full overflow-hidden flex border border-neutral-800">
+            <div id="cost-bar-minsky" class="bg-phosphor h-full transition-all duration-300" style="width: 32%"></div>
+            <div id="cost-bar-proprietary" class="bg-neutral-700 h-full transition-all duration-300" style="width: 68%"></div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] font-mono text-neutral-500 border-t border-ink-muted pt-4">
+          <span>*Indicative estimates based on blended 1,500 token contextual actions.</span>
+          <button onclick="toggleMethodologyModal(true)" class="text-neutral-400 hover:text-phosphor underline">
+            Read methodology note →
+          </button>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- SCENE 7: CLOSE (Contact as a Typed Conversation)             -->
+    <!-- ============================================================ -->
+    <section id="scene-7" class="scroll-mt-28 space-y-8">
+      
+      <!-- Label -->
+      <div class="flex items-center justify-between border-b border-ink-muted pb-2">
+        <span class="font-mono text-xs text-neutral-500 uppercase tracking-widest">/contact</span>
+        <span class="font-mono text-xs text-neutral-400">Human Intake</span>
+      </div>
+
+      <!-- Headline -->
+      <div>
+        <h2 class="font-serif text-4xl sm:text-6xl text-bone mb-3">
+          Let’s build something that takes care.
+        </h2>
+        <p class="font-sans text-base text-neutral-400 max-w-xl">
+          No generic contact form with drop-downs. Answer three deliberate questions. We reply within one working day.
+        </p>
+      </div>
+
+      <!-- Typed Conversation Interactive Card -->
+      <div class="rounded-xl border border-ink-muted bg-ink-soft p-6 sm:p-8 space-y-6">
+        
+        <div id="conversation-step-container">
+          
+          <!-- STEP 1 -->
+          <div id="conv-step-1" class="space-y-4">
+            <div class="flex items-center justify-between font-mono text-xs text-neutral-500">
+              <span>Question 01 of 03</span>
+              <span class="text-phosphor">◐ human listener</span>
+            </div>
+            <label class="font-serif text-2xl text-bone block">
+              1. What are you building, or trying to fix?
+            </label>
+            <textarea id="conv-q1" rows="3" 
+                      placeholder="e.g. We have 40 field officers whose daily PDF reports need to update our central state dashboard without manual transcription..."
+                      class="w-full bg-ink text-bone font-mono text-sm p-4 rounded-lg border border-ink-muted focus:border-phosphor placeholder:text-neutral-600 resize-none"></textarea>
+            <div class="flex justify-end">
+              <button onclick="nextConvStep(2)" class="px-5 py-2.5 rounded bg-phosphor text-ink font-mono text-xs font-semibold hover:bg-[#cbfb7b] transition flex items-center gap-2">
+                <span>Next</span> <span>→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 2 (Initially Hidden) -->
+          <div id="conv-step-2" class="hidden space-y-4">
+            <div class="flex items-center justify-between font-mono text-xs text-neutral-500">
+              <span>Question 02 of 03</span>
+              <span class="text-phosphor">◐ human listener</span>
+            </div>
+            <label class="font-serif text-2xl text-bone block">
+              2. Who will use it?
+            </label>
+            <input type="text" id="conv-q2" 
+                   placeholder="e.g. Artisans with low smartphone literacy, or internal ops team of 8"
+                   class="w-full bg-ink text-bone font-mono text-sm p-4 rounded-lg border border-ink-muted focus:border-phosphor placeholder:text-neutral-600">
+            <div class="flex justify-between items-center">
+              <button onclick="nextConvStep(1)" class="font-mono text-xs text-neutral-500 hover:text-bone">← Back</button>
+              <button onclick="nextConvStep(3)" class="px-5 py-2.5 rounded bg-phosphor text-ink font-mono text-xs font-semibold hover:bg-[#cbfb7b] transition flex items-center gap-2">
+                <span>Next</span> <span>→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- STEP 3 (Initially Hidden) -->
+          <div id="conv-step-3" class="hidden space-y-4">
+            <div class="flex items-center justify-between font-mono text-xs text-neutral-500">
+              <span>Question 03 of 03</span>
+              <span class="text-phosphor">◐ human listener</span>
+            </div>
+            <label class="font-serif text-2xl text-bone block">
+              3. How should we reach you?
+            </label>
+            <input type="text" id="conv-q3" 
+                   placeholder="Your name, work email, and optional phone or Telegram handle"
+                   class="w-full bg-ink text-bone font-mono text-sm p-4 rounded-lg border border-ink-muted focus:border-phosphor placeholder:text-neutral-600">
+            <div class="flex justify-between items-center">
+              <button onclick="nextConvStep(2)" class="font-mono text-xs text-neutral-500 hover:text-bone">← Back</button>
+              <button onclick="submitConversation()" class="px-6 py-2.5 rounded bg-ember text-ink font-mono text-xs font-semibold hover:bg-amber-400 transition flex items-center gap-2 shadow-lg">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Submit to Minsky Humans</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CONFIRMATION (Initially Hidden) -->
+          <div id="conv-step-confirmed" class="hidden p-6 rounded-lg bg-ink border border-neutral-800 space-y-4">
+            <div class="flex items-center gap-2 text-ember">
+              <span class="font-serif text-2xl">◐</span>
+              <span class="font-serif text-2xl text-bone">Received with care.</span>
+            </div>
+            <p class="font-mono text-sm text-neutral-300 leading-relaxed">
+              Got it. A person will reply within one working day. Not a bot. We’ll read through your context and send back either thoughtful follow-up questions or an initial technical schematic.
+            </p>
+            <div class="font-mono text-xs text-neutral-500 border-t border-neutral-900 pt-3">
+              Minsky Studio · Alwarpet / OMR corridor, Chennai · IST (UTC+5:30)
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- FOOTER                                                         -->
+  <!-- ============================================================== -->
+  <footer class="border-t border-ink-muted bg-ink-soft/40 relative z-10 py-16 text-neutral-400 text-xs font-mono">
+    <div class="max-w-4xl mx-auto px-4 sm:px-8 space-y-12">
+      
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div>
+          <span class="font-serif text-3xl text-bone tracking-wide">minsky</span>
+          <p class="font-sans text-xs text-neutral-500 mt-1">
+            AI-native software studio · Built to fade into the background.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-6 text-xs text-neutral-300">
+          <a href="#scene-0" class="hover:text-phosphor transition">Home</a>
+          <a href="#scene-5" class="hover:text-phosphor transition">Works</a>
+          <a href="#scene-3" class="hover:text-phosphor transition">Services</a>
+          <a href="#scene-6" class="hover:text-phosphor transition">Stack</a>
+          <a href="#scene-1" class="hover:text-phosphor transition">Philosophy</a>
+          <a href="#scene-7" class="hover:text-ember transition">Contact</a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 border-t border-ink-muted/60 text-[11px]">
+        <div>
+          <span class="text-neutral-500 block">Studio Location:</span>
+          <span class="text-bone">Chennai, Tamil Nadu, India</span>
+        </div>
+        <div>
+          <span class="text-neutral-500 block">Direct Inquiries:</span>
+          <a href="mailto:hello@minsky.in" class="text-phosphor hover:underline">hello@minsky.in</a>
+        </div>
+        <div>
+          <span class="text-neutral-500 block">Connect:</span>
+          <div class="flex gap-4 text-neutral-400 mt-0.5">
+            <a href="https://linkedin.com" target="_blank" rel="noreferrer" class="hover:text-bone">LinkedIn</a>
+            <a href="https://x.com" target="_blank" rel="noreferrer" class="hover:text-bone">X (Twitter)</a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" class="hover:text-bone">Instagram</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-neutral-600 text-[10px] pt-4">
+        <div>
+          © 2026 Minsky Software Studio. All prompts and customer intellectual property reserved.
+        </div>
+        <div class="flex gap-4">
+          <a href="#privacy" class="hover:text-neutral-400">Privacy (Zero prompt storage without permission)</a>
+          <span>·</span>
+          <a href="#terms" class="hover:text-neutral-400">Terms</a>
+        </div>
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ============================================================== -->
+  <!-- COMMAND BAR (Fixed bottom navigation pill)                     -->
+  <!-- ============================================================== -->
+  <div class="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-40 max-w-xl w-[92%] sm:w-auto">
+    <nav aria-label="Command bar" class="flex items-center justify-between sm:justify-start gap-1 sm:gap-2 px-3 py-2 rounded-full border border-ink-muted bg-ink/90 backdrop-blur-md shadow-2xl text-xs font-mono">
+      
+      <!-- Trigger button -->
+      <button onclick="toggleCommandPalette(true)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-ink-soft hover:bg-neutral-800 text-bone border border-neutral-800 transition">
+        <kbd class="text-[10px] text-phosphor font-bold">⌘K</kbd>
+        <span class="font-medium">Ask Minsky</span>
+      </button>
+
+      <span class="text-neutral-700 hidden sm:inline">·</span>
+
+      <!-- Quick Nav Links -->
+      <a href="#scene-5" class="px-2 py-1 text-neutral-400 hover:text-bone transition">Work</a>
+      <a href="#scene-3" class="px-2 py-1 text-neutral-400 hover:text-bone transition">Services</a>
+      <a href="#scene-6" class="px-2 py-1 text-neutral-400 hover:text-bone transition hidden sm:inline">Stack</a>
+      <a href="#scene-1" class="px-2 py-1 text-neutral-400 hover:text-bone transition hidden md:inline">Philosophy</a>
+      
+      <span class="text-neutral-700 hidden sm:inline">·</span>
+
+      <a href="#scene-7" class="px-3 py-1.5 rounded-full bg-ember/20 text-ember hover:bg-ember hover:text-ink font-medium transition flex items-center gap-1">
+        <span>Contact</span>
+        <span class="text-xs">◐</span>
+      </a>
+
+    </nav>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: COMMAND PALETTE (Cmd+K / Ctrl+K)                        -->
+  <!-- ============================================================== -->
+  <div id="cmd-palette-backdrop" class="fixed inset-0 bg-ink/80 backdrop-blur-sm z-50 hidden flex items-start justify-center pt-24 px-4 transition-opacity">
+    <div class="w-full max-w-xl rounded-xl border border-ink-muted bg-ink-soft shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Input bar -->
+      <div class="flex items-center gap-3 p-4 border-b border-ink-muted bg-ink">
+        <i data-lucide="search" class="w-4 h-4 text-phosphor"></i>
+        <input type="text" id="cmd-input" placeholder="Jump to scene, ask about pricing, open-source stack, or office..." 
+               class="w-full bg-transparent text-bone placeholder:text-neutral-600 focus:outline-none text-sm"
+               oninput="filterCommandPalette(this.value)">
+        <kbd onclick="toggleCommandPalette(false)" class="cursor-pointer px-1.5 py-0.5 rounded border border-neutral-700 text-neutral-500 hover:text-bone">ESC</kbd>
+      </div>
+
+      <!-- Quick action list -->
+      <div id="cmd-items" class="p-2 max-h-80 overflow-y-auto space-y-1">
+        <div class="p-2 text-[10px] uppercase text-neutral-500 font-mono tracking-wider">Navigation</div>
+        
+        <button onclick="runCommand('#scene-0')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>00 / Arrival (Prompt Brief Engine)</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-1')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>01 / Philosophy (Redlined Manifesto)</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-2')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>02 / What AI-Native Means (Interface Morph)</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-3')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>03 / Capabilities (The Ledger)</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-4')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>04 / How We Work (Git Log & Gates)</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-5')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>05 / Proof & System Traces</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-6')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-phosphor flex items-center justify-between group">
+          <span>06 / Cost Modeler & Sustainability</span>
+          <span class="text-neutral-600 group-hover:text-neutral-400">Jump ↵</span>
+        </button>
+
+        <button onclick="runCommand('#scene-7')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-ember flex items-center justify-between group">
+          <span>07 / Start a Conversation (Contact Humans)</span>
+          <span class="text-ember font-serif">◐ Direct</span>
+        </button>
+
+        <div class="p-2 text-[10px] uppercase text-neutral-500 font-mono tracking-wider pt-3">Quick Queries</div>
+
+        <button onclick="answerInPalette('stack')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-bone flex items-center justify-between">
+          <span>What is the Minsky default tech stack?</span>
+          <span class="text-neutral-500">Info</span>
+        </button>
+        <button onclick="answerInPalette('chennai')" class="w-full text-left p-2.5 rounded hover:bg-ink text-neutral-300 hover:text-bone flex items-center justify-between">
+          <span>Where are you based in Chennai?</span>
+          <span class="text-neutral-500">Info</span>
+        </button>
+      </div>
+
+      <!-- Quick query result container -->
+      <div id="cmd-answer-box" class="hidden p-4 border-t border-neutral-800 bg-ink text-neutral-300 space-y-2">
+        <div class="text-[10px] text-phosphor uppercase font-mono" id="cmd-answer-title">Answer</div>
+        <p class="text-xs leading-relaxed" id="cmd-answer-body"></p>
+        <button onclick="document.getElementById('cmd-answer-box').classList.add('hidden')" class="text-[11px] text-neutral-500 hover:text-bone underline">Dismiss</button>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-3 border-t border-ink-muted bg-ink/50 text-[10px] text-neutral-500 flex justify-between">
+        <span>Press <kbd class="px-1 bg-ink rounded">↑</kbd> <kbd class="px-1 bg-ink rounded">↓</kbd> to navigate</span>
+        <span>Minsky Studio Command Engine</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL: METHODOLOGY NOTE (Cost Slider)                          -->
+  <!-- ============================================================== -->
+  <div id="methodology-modal" class="fixed inset-0 bg-ink/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-xl border border-ink-muted bg-ink-soft p-6 font-mono text-xs space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-ink-muted pb-3">
+        <span class="text-phosphor text-sm font-medium">/methodology: cost modeler</span>
+        <button onclick="toggleMethodologyModal(false)" class="text-neutral-500 hover:text-bone">✕</button>
+      </div>
+      <p class="text-neutral-300 leading-relaxed font-sans text-sm">
+        Our calculations assume average prompt context of 1,200 tokens and 300 completion tokens per business action.
+      </p>
+      <ul class="space-y-2 text-neutral-400 font-mono text-[11px] list-disc pl-4">
+        <li><strong class="text-neutral-200">Proprietary baseline:</strong> Direct calls to commercial frontier APIs at ~$20–$30 / 1M output tokens without caching.</li>
+        <li><strong class="text-neutral-200">Minsky model-routed stack:</strong> 70-80% of classification, extraction, and drafting routed to quantized open-source weights (Llama 3.3 / Mistral) on dedicated inference instances, utilizing Redis semantic vector caching, cascading to frontier models only when uncertainty thresholds exceed 15%.</li>
+      </ul>
+      <div class="pt-2 flex justify-end">
+        <button onclick="toggleMethodologyModal(false)" class="px-4 py-1.5 rounded bg-phosphor text-ink font-medium">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification container -->
+  <div id="toast-container" class="fixed bottom-20 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT LOGIC                                               -->
+  <!-- ============================================================== -->
+  <script>
+    // Initialize icons
+    lucide.createIcons();
+
+    // ------------------------------------------------------------------
+    // Audio Feedback Controller (Subtle tactile mechanical typewriter)
+    // ------------------------------------------------------------------
+    let soundEnabled = false;
+    let audioCtx = null;
+
+    function playClickSound(freq = 600, duration = 0.015) {
+      if (!soundEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // audio fallback silent
+      }
+    }
+
+    const soundToggle = document.getElementById('sound-toggle');
+    const soundIcon = document.getElementById('sound-icon');
+    soundToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundIcon.setAttribute('data-lucide', soundEnabled ? 'volume-2' : 'volume-x');
+      lucide.createIcons();
+      showToast(soundEnabled ? 'Mechanical audio feedback enabled' : 'Quiet mode active');
+      if (soundEnabled) playClickSound(800, 0.03);
+    });
+
+    // ------------------------------------------------------------------
+    // Theme Mode: Ink (Dark) vs Bone (Light)
+    // ------------------------------------------------------------------
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeLabel = document.getElementById('theme-label');
+    const themeDot = document.getElementById('theme-dot');
+    let isDark = true;
+
+    // Optional local time check: If between 7am and 6pm IST, can default to bone if desired
+    function initTheme() {
+      // Defaulting to dark ink per spec, but responsive to toggle
+      document.documentElement.classList.add('dark');
+    }
+    initTheme();
+
+    themeToggle.addEventListener('click', () => {
+      isDark = !isDark;
+      playClickSound(700);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.classList.remove('light');
+        document.body.classList.remove('bg-bone', 'text-ink');
+        document.body.classList.add('bg-ink', 'text-bone');
+        themeLabel.textContent = 'Ink';
+        themeDot.className = 'w-2 h-2 rounded-full bg-bone';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+        document.body.classList.remove('bg-ink', 'text-bone');
+        document.body.classList.add('bg-bone', 'text-ink');
+        themeLabel.textContent = 'Bone';
+        themeDot.className = 'w-2 h-2 rounded-full bg-ink';
+      }
+    });
+
+    // ------------------------------------------------------------------
+    // Role Lens Switcher (Hero Scene 0)
+    // ------------------------------------------------------------------
+    const lensData = {
+      general: "We design, build, and look after software where intelligence is the foundation, not a feature. It serves people without demanding their attention.",
+      founder: "Ship scalable, production-ready AI software in weeks without handing your margins over to closed APIs or bloated engineering teams.",
+      institution: "Software that serves citizens without adding to your team’s workload, built on open standards you can audit and own forever.",
+      operations: "Automate edge-case approvals and document flows quietly. Your team stays in the loop only where high-stakes judgment is required.",
+      developer: "Clean architectures, open-source models (vLLM, Ollama, LangGraph), reproducible evaluations, and zero proprietary lock-in."
+    };
+
+    function setLens(lensKey) {
+      playClickSound(650);
+      const subcopy = document.getElementById('lens-subcopy');
+      subcopy.style.opacity = '0';
+      setTimeout(() => {
+        subcopy.textContent = lensData[lensKey] || lensData.general;
+        subcopy.style.opacity = '1';
+      }, 150);
+
+      document.querySelectorAll('.lens-btn').forEach(btn => {
+        if (btn.getAttribute('data-lens') === lensKey) {
+          btn.className = 'lens-btn px-2.5 py-1 rounded border border-phosphor bg-phosphor/10 text-phosphor';
+        } else {
+          btn.className = 'lens-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone';
+        }
+      });
+    }
+
+    // ------------------------------------------------------------------
+    // Live Brief Generator (Scene 0 Signature Feature)
+    // ------------------------------------------------------------------
+    function fillPrompt(text) {
+      playClickSound(550);
+      document.getElementById('brief-input').value = text;
+    }
+
+    const mockBriefKnowledge = {
+      crm: {
+        heard: "Your team loses hours every week chasing outbound leads, manually logging replies, and compiling proposal followups.",
+        aiWork: "Ingest inbound emails, correlate previous proposal terms, detect price sensitivities, and prepare ready-to-dispatch draft replies in the background.",
+        humanGate: "A human reviews customer pricing changes and clicks [Send]. No unapproved message ever leaves your domain.",
+        shape: "Next.js + FastAPI + Llama 3.3 (8B) routed via vLLM. 4–6 weeks delivery. Indicative stack cost: ~$120/mo.",
+        nextAsk: "What CRM database or email gateway do your account managers currently live in?"
+      },
+      approvals: {
+        heard: "Multi-layered manual signoffs and compliance documents bottleneck project execution and frustrate operational staff.",
+        aiWork: "Extract tabular invoices, cross-reference GST / vendor contracts, flag regulatory discrepancies, and verify balance totals.",
+        humanGate: "Final authorization signature for payments and exception waivers remains strictly human.",
+        shape: "Event-driven Python workers + OCR microservices + Postgres triggers. 3–5 weeks. Indicative stack cost: ~$90/mo.",
+        nextAsk: "Do invoices arrive as scans, unstructured PDFs, or ERP webhook payloads?"
+      },
+      workers: {
+        heard: "10,000 distributed field workers in low-connectivity areas struggle with sluggish data entry and cumbersome forms.",
+        aiWork: "On-device speech-to-text with local vernacular translation, auto-filling field forms and validating GPS coordinates quietly.",
+        humanGate: "Field supervisor audits flagged anomaly clusters and validates quarterly aggregate reports.",
+        shape: "Flutter / React Native offline-first with SQLite + whisper.cpp mobile model + sync engine. 8–10 weeks. Indicative cost: negligible cloud inference.",
+        nextAsk: "What Android hardware versions and local languages (Tamil, Telugu, English) are standard in the field?"
+      },
+      data: {
+        heard: "Non-technical leadership waits days for business analysts to write SQL and generate recurring status reports.",
+        aiWork: "Semantic Text-to-SQL layer with schema introspection, running sanitized queries against read-replicas with instant data summaries.",
+        humanGate: "Data governance officer approves read-schema permissions; system never executes write/destructive operations.",
+        shape: "LangChain/LangGraph SQL agents + DuckDB / pgvector semantic caching. 4 weeks. Indicative cost: ~$150/mo.",
+        nextAsk: "Is your primary warehouse PostgreSQL, Snowflake, BigQuery, or standard MariaDB?"
+      },
+      default: {
+        heard: "Manual friction and repetitive coordination slowing down high-value human decisions.",
+        aiWork: "Extract, classify, route, and compose structured drafts without requiring full user attention.",
+        humanGate: "Human oversight on every outcome touching capital, compliance, or external brand trust.",
+        shape: "Model-routed open architecture (Python / FastAPI / React). 4–8 weeks indicative cadence.",
+        nextAsk: "What is the single most repetitive operational step your team completed yesterday?"
+      }
+    };
+
+    let streamInterval = null;
+
+    function generateLiveBrief(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('brief-input').value.trim();
+      if (!input) return;
+
+      playClickSound(900, 0.05);
+
+      const outputContainer = document.getElementById('brief-output-container');
+      const streamContent = document.getElementById('brief-stream-content');
+      const statusText = document.getElementById('brief-status-text');
+      const humanFooter = document.getElementById('brief-human-footer');
+      const clearBtn = document.getElementById('clear-brief-btn');
+      const submitBtn = document.getElementById('submit-brief-btn');
+
+      outputContainer.classList.remove('hidden');
+      humanFooter.classList.add('hidden');
+      clearBtn.classList.remove('hidden');
+      submitBtn.disabled = true;
+      submitBtn.classList.add('opacity-50');
+
+      streamContent.innerHTML = '';
+      statusText.textContent = 'Analyzing problem & synthesizing 5-part architecture...';
+
+      // Pick closest domain knowledge
+      const lower = input.toLowerCase();
+      let selected = mockBriefKnowledge.default;
+      if (lower.includes('crm') || lower.includes('follow')) selected = mockBriefKnowledge.crm;
+      else if (lower.includes('approval') || lower.includes('invoice') || lower.includes('manual')) selected = mockBriefKnowledge.approvals;
+      else if (lower.includes('field') || lower.includes('10,000') || lower.includes('app') || lower.includes('worker')) selected = mockBriefKnowledge.workers;
+      else if (lower.includes('data') || lower.includes('question') || lower.includes('postgres') || lower.includes('sql')) selected = mockBriefKnowledge.data;
+
+      // 5 parts to stream
+      const parts = [
+        { label: "01 // What We Heard", text: selected.heard, color: "text-neutral-300" },
+        { label: "02 // Where AI Should Do The Work", text: selected.aiWork, color: "text-phosphor" },
+        { label: "03 // Where A Person Should Decide ◐", text: selected.humanGate, color: "text-amber-300" },
+        { label: "04 // Sensible Shape & Stack", text: selected.shape, color: "text-neutral-200" },
+        { label: "05 // What We’d Ask You Next", text: selected.nextAsk, color: "text-neutral-400" }
+      ];
+
+      let currentPartIndex = 0;
+      let currentCharIndex = 0;
+
+      // Create initial shell
+      parts.forEach((p, idx) => {
+        const div = document.createElement('div');
+        div.id = `brief-part-${idx}`;
+        div.className = 'space-y-1 opacity-20 transition-opacity duration-300';
+        div.innerHTML = `
+          <div class="text-[10px] uppercase tracking-wider text-neutral-500 font-bold">${p.label}</div>
+          <p class="${p.color} leading-relaxed" id="brief-text-${idx}"></p>
+        `;
+        streamContent.appendChild(div);
+      });
+
+      if (streamInterval) clearInterval(streamInterval);
+
+      streamInterval = setInterval(() => {
+        if (currentPartIndex >= parts.length) {
+          clearInterval(streamInterval);
+          statusText.textContent = 'Draft complete. Ready for human review.';
+          document.getElementById('streaming-indicator').classList.remove('animate-ping');
+          humanFooter.classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50');
+          playClickSound(1200, 0.08);
+          return;
+        }
+
+        const activeDiv = document.getElementById(`brief-part-${currentPartIndex}`);
+        const activeTextElem = document.getElementById(`brief-text-${currentPartIndex}`);
+        activeDiv.classList.remove('opacity-20');
+
+        const currentPart = parts[currentPartIndex];
+        const char = currentPart.text.charAt(currentCharIndex);
+        activeTextElem.textContent += char;
+        currentCharIndex++;
+
+        // Random subtle typewriter tick
+        if (currentCharIndex % 4 === 0) playClickSound(750, 0.008);
+
+        if (currentCharIndex >= currentPart.text.length) {
+          currentPartIndex++;
+          currentCharIndex = 0;
+        }
+      }, 16);
+    }
+
+    function resetHeroBrief() {
+      if (streamInterval) clearInterval(streamInterval);
+      document.getElementById('brief-output-container').classList.add('hidden');
+      document.getElementById('clear-brief-btn').classList.add('hidden');
+      document.getElementById('brief-input').value = '';
+      const submitBtn = document.getElementById('submit-brief-btn');
+      submitBtn.disabled = false;
+      submitBtn.classList.remove('opacity-50');
+    }
+
+    function sendBriefToTeam() {
+      playClickSound(880);
+      showToast('Draft brief saved. Routed to Minsky human engineering team.');
+      setTimeout(() => {
+        const target = document.getElementById('scene-7');
+        target.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('conv-q1').value = "Referencing live draft brief for: " + document.getElementById('brief-input').value;
+      }, 400);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene 1: Redlined Manifesto Diff Stepper
+    // ------------------------------------------------------------------
+    function toggleManifestoStep(step) {
+      playClickSound(600);
+      [1, 2, 3].forEach(s => {
+        const block = document.getElementById(`diff-beat-${s}`);
+        const btn = document.getElementById(`step-btn-${s}`);
+        if (s === step) {
+          block.classList.remove('opacity-40');
+          block.classList.add('border-phosphor/40', 'bg-ink');
+          btn.className = 'step-btn px-2.5 py-1 rounded border border-phosphor text-phosphor bg-phosphor/10';
+        } else {
+          block.classList.add('opacity-40');
+          block.classList.remove('border-phosphor/40', 'bg-ink');
+          btn.className = 'step-btn px-2.5 py-1 rounded border border-ink-muted text-neutral-400 hover:text-bone';
+        }
+      });
+    }
+
+    function playAllManifesto() {
+      playClickSound(700);
+      let s = 1;
+      toggleManifestoStep(s);
+      const interval = setInterval(() => {
+        s++;
+        if (s > 3) {
+          clearInterval(interval);
+          [1, 2, 3].forEach(step => {
+            document.getElementById(`diff-beat-${step}`).classList.remove('opacity-40');
+          });
+          return;
+        }
+        toggleManifestoStep(s);
+      }, 900);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene 2: Interface Morph (Bolted-on vs Native)
+    // ------------------------------------------------------------------
+    function setInterfaceMode(mode) {
+      playClickSound(mode === 'native' ? 950 : 450);
+      const bolted = document.getElementById('interface-bolted');
+      const native = document.getElementById('interface-native');
+      const btnBolted = document.getElementById('btn-mode-bolted');
+      const btnNative = document.getElementById('btn-mode-native');
+
+      if (mode === 'native') {
+        bolted.classList.add('hidden');
+        native.classList.remove('hidden');
+        btnNative.className = 'px-4 py-1.5 rounded-md text-xs font-mono transition-all bg-phosphor text-ink font-semibold shadow';
+        btnBolted.className = 'px-4 py-1.5 rounded-md text-xs font-mono transition-all text-neutral-400 hover:text-bone';
+      } else {
+        native.classList.add('hidden');
+        bolted.classList.remove('hidden');
+        btnBolted.className = 'px-4 py-1.5 rounded-md text-xs font-mono transition-all bg-neutral-800 text-bone font-semibold shadow';
+        btnNative.className = 'px-4 py-1.5 rounded-md text-xs font-mono transition-all text-neutral-400 hover:text-bone';
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Scene 3: Capabilities Ledger Expand / Collapse
+    // ------------------------------------------------------------------
+    function toggleLedgerRow(id) {
+      playClickSound(620);
+      const content = document.getElementById(`ledger-content-${id}`);
+      const isHidden = content.classList.contains('hidden');
+      
+      // Close others for clean instrument feel
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`ledger-content-${i}`).classList.add('hidden');
+        const icon = document.querySelectorAll('.ledger-row')[i - 1].querySelector('.ledger-icon');
+        icon.textContent = '[ + ]';
+      }
+
+      if (isHidden) {
+        content.classList.remove('hidden');
+        document.querySelectorAll('.ledger-row')[id - 1].querySelector('.ledger-icon').textContent = '[ − ]';
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Scene 6: Sustainability Interactive Cost Slider
+    // ------------------------------------------------------------------
+    function updateCostModel(actions) {
+      actions = parseInt(actions);
+      playClickSound(400 + Math.min(actions / 2000, 600), 0.008);
+
+      document.getElementById('slider-actions-val').textContent = actions.toLocaleString() + ' actions';
+
+      // Proprietary logic: ~$0.03 per action equivalent
+      const propCost = Math.round(actions * 0.03);
+      // Minsky model-routed stack: 80% SLM at ~$0.002 + 20% frontier at ~$0.025 + caching
+      const minskyCost = Math.round(actions * 0.0096);
+      const monthlySavings = propCost - minskyCost;
+      const annualSavings = monthlySavings * 12;
+
+      document.getElementById('cost-proprietary-display').innerHTML = `$${propCost.toLocaleString()} <span class="text-xs font-mono text-neutral-500">/ mo</span>`;
+      document.getElementById('cost-minsky-display').innerHTML = `$${minskyCost.toLocaleString()} <span class="text-xs font-mono text-neutral-400">/ mo</span>`;
+      document.getElementById('cost-savings-year').textContent = `$${annualSavings.toLocaleString()} saved annually`;
+
+      const total = propCost + minskyCost;
+      const minskyPct = Math.max(15, Math.min(85, Math.round((minskyCost / total) * 100)));
+      document.getElementById('cost-bar-minsky').style.width = minskyPct + '%';
+      document.getElementById('cost-bar-proprietary').style.width = (100 - minskyPct) + '%';
+    }
+
+    function toggleMethodologyModal(show) {
+      playClickSound(500);
+      const modal = document.getElementById('methodology-modal');
+      modal.classList.toggle('hidden', !show);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene 7: Close Typed Conversation
+    // ------------------------------------------------------------------
+    function nextConvStep(stepNumber) {
+      playClickSound(650);
+      document.getElementById('conv-step-1').classList.add('hidden');
+      document.getElementById('conv-step-2').classList.add('hidden');
+      document.getElementById('conv-step-3').classList.add('hidden');
+
+      const target = document.getElementById(`conv-step-${stepNumber}`);
+      if (target) target.classList.remove('hidden');
+    }
+
+    function submitConversation() {
+      const q1 = document.getElementById('conv-q1').value.trim();
+      const q2 = document.getElementById('conv-q2').value.trim();
+      const q3 = document.getElementById('conv-q3').value.trim();
+
+      if (!q3) {
+        showToast('Please leave your contact email or handle.');
+        return;
+      }
+
+      playClickSound(1100, 0.06);
+      document.getElementById('conv-step-3').classList.add('hidden');
+      document.getElementById('conv-step-confirmed').classList.remove('hidden');
+      showToast('Inquiry safely delivered to Chennai human engineers.');
+    }
+
+    // ------------------------------------------------------------------
+    // Command Palette Modal & Keyboard Shortcuts (Cmd+K / Ctrl+K)
+    // ------------------------------------------------------------------
+    function toggleCommandPalette(show) {
+      playClickSound(show ? 700 : 400);
+      const backdrop = document.getElementById('cmd-palette-backdrop');
+      backdrop.classList.toggle('hidden', !show);
+      if (show) {
+        setTimeout(() => document.getElementById('cmd-input').focus(), 50);
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        const backdrop = document.getElementById('cmd-palette-backdrop');
+        toggleCommandPalette(backdrop.classList.contains('hidden'));
+      }
+      if (e.key === 'Escape') {
+        toggleCommandPalette(false);
+        toggleMethodologyModal(false);
+      }
+    });
+
+    // Close when clicking outside modal box
+    document.getElementById('cmd-palette-backdrop').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('cmd-palette-backdrop')) {
+        toggleCommandPalette(false);
+      }
+    });
+
+    function runCommand(hash) {
+      toggleCommandPalette(false);
+      const elem = document.querySelector(hash);
+      if (elem) {
+        elem.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function filterCommandPalette(query) {
+      const q = query.toLowerCase();
+      const buttons = document.querySelectorAll('#cmd-items button');
+      buttons.forEach(btn => {
+        const text = btn.innerText.toLowerCase();
+        btn.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function answerInPalette(topic) {
+      playClickSound(600);
+      const box = document.getElementById('cmd-answer-box');
+      const title = document.getElementById('cmd-answer-title');
+      const body = document.getElementById('cmd-answer-body');
+      box.classList.remove('hidden');
+
+      if (topic === 'stack') {
+        title.textContent = 'Minsky Default Engineering Stack';
+        body.textContent = 'Backend: Python (FastAPI), Go, vLLM inference router. Frontend: Next.js/React, Tailwind CSS, TypeScript. Data & Storage: PostgreSQL + pgvector, Redis Semantic Caching. Open models: Llama 3.3, Mistral, Qwen, Whisper.';
+      } else if (topic === 'chennai') {
+        title.textContent = 'Studio Location';
+        body.textContent = 'Based in Chennai, Tamil Nadu (India), bridging public digital infrastructure with modern open-source machine learning engineering.';
+      }
+    }
+
+    // ------------------------------------------------------------------
+    // Scroll Spine Synchronizer (Dynamic Left Lifecycle stages)
+    // ------------------------------------------------------------------
+    const scenes = [
+      document.getElementById('scene-0'),
+      document.getElementById('scene-1'),
+      document.getElementById('scene-2'),
+      document.getElementById('scene-3'),
+      document.getElementById('scene-4'),
+      document.getElementById('scene-5'),
+      document.getElementById('scene-6'),
+      document.getElementById('scene-7'),
+    ];
+
+    const spineItems = document.querySelectorAll('.spine-item');
+    const spineIndicator = document.getElementById('spine-active-indicator');
+
+    window.addEventListener('scroll', () => {
+      const scrollPos = window.scrollY + 250;
+      let currentStage = 0;
+
+      scenes.forEach((scene, index) => {
+        if (scene && scene.offsetTop <= scrollPos) {
+          currentStage = index;
+        }
+      });
+
+      spineItems.forEach((item, idx) => {
+        const dot = item.querySelector('span:first-child');
+        if (idx === currentStage) {
+          item.className = 'spine-item group flex items-center gap-2 text-phosphor font-medium transition-colors';
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-phosphor';
+          if (spineIndicator) {
+            spineIndicator.style.top = `${idx * 26}px`;
+          }
+        } else {
+          item.className = 'spine-item group flex items-center gap-2 text-neutral-500 hover:text-bone transition-colors';
+          dot.className = 'w-1.5 h-1.5 rounded-full bg-neutral-700 group-hover:bg-phosphor transition-colors';
+        }
+      });
+    }, { passive: true });
+
+    // ------------------------------------------------------------------
+    // Toast Notification Utility
+    // ------------------------------------------------------------------
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'px-4 py-2.5 rounded bg-ink-soft border border-phosphor/40 text-bone font-mono text-xs shadow-xl flex items-center gap-2 pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-200';
+      toast.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-phosphor"></span><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 20);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 250);
+      }, 3200);
+    }
+
+    function triggerActionToast(msg) {
+      playClickSound(800);
+      showToast(msg);
+    }
+
+    // Run initial cost computation
+    updateCostModel(50000);
+  </script>
+
+</body>
+</html>
